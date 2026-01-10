@@ -1,3 +1,93 @@
+# --- Resume QR Code Endpoint ---
+from pydantic import BaseModel
+from fastapi.responses import JSONResponse
+
+class ResumeQRInput(BaseModel):
+    resume: str
+
+@router.post("/resume_qr")
+def resume_qr(data: ResumeQRInput):
+    from app.services.career_service import generate_resume_qr_service
+    qr_b64 = generate_resume_qr_service(data.resume)
+    return JSONResponse(content={"qr_code_base64": qr_b64})
+# --- Post-Job-Offer Transition Checklist Endpoint ---
+@router.get("/transition_checklist")
+def transition_checklist():
+    from app.services.career_service import get_transition_checklist_service
+    return get_transition_checklist_service()
+# --- Climate/Location Info Endpoint ---
+class LocationInfoInput(BaseModel):
+    location: str
+
+@router.post("/location_info")
+def location_info(data: LocationInfoInput):
+    from app.services.career_service import get_location_info_service
+    info = get_location_info_service(data.location)
+    return info
+# --- Job Buddy System ---
+from typing import Literal
+
+class SponsorSignupInput(BaseModel):
+    name: str
+    email: str
+    expertise: List[str]
+    consent: bool
+
+@router.post("/job_buddy/sponsor_signup")
+def sponsor_signup(data: SponsorSignupInput):
+    from app.services.career_service import sponsor_signup_service
+    result = sponsor_signup_service(data)
+    return result
+
+class BuddyRequestInput(BaseModel):
+    user_email: str
+    preference: Literal["ai", "human"]
+    interests: List[str]
+
+@router.post("/job_buddy/request")
+def buddy_request(data: BuddyRequestInput):
+    from app.services.career_service import buddy_request_service
+    result = buddy_request_service(data)
+    return result
+# --- Company Info and Attire Recommendation Endpoint ---
+class CompanyInfoInput(BaseModel):
+    company: str
+    job_title: Optional[str] = None
+
+@router.post("/company_info")
+def company_info(data: CompanyInfoInput):
+    from app.services.career_service import get_company_info_service
+    info = get_company_info_service(data.company, data.job_title)
+    return info
+# --- Prior Job to AI Job Mapping Endpoint ---
+class PriorJobInput(BaseModel):
+    prior_jobs: List[str]
+
+@router.post("/map_prior_jobs")
+def map_prior_jobs(data: PriorJobInput):
+    from app.services.career_service import map_prior_jobs_service
+    ai_jobs = map_prior_jobs_service(data.prior_jobs)
+    return {"suggested_ai_jobs": ai_jobs}
+# --- AI Job Listings Endpoint ---
+from fastapi import Query
+
+@router.get("/ai_jobs")
+def get_ai_jobs(mobile_only: bool = Query(False, description="Return only mobile AI jobs")):
+    from app.services.career_service import get_ai_jobs_service
+    jobs = get_ai_jobs_service(mobile_only=mobile_only)
+    return {"ai_jobs": jobs}
+
+# --- Qualification Matching Endpoint ---
+
+class QualificationInput(BaseModel):
+    qualifications: List[str]
+    mobile_only: Optional[bool] = False
+
+@router.post("/match_qualifications")
+def match_qualifications(data: QualificationInput):
+    from app.services.career_service import match_qualifications_service
+    matches = match_qualifications_service(data.qualifications, mobile_only=data.mobile_only)
+    return {"matched_jobs": matches}
 
 from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
 from pydantic import BaseModel
@@ -66,14 +156,34 @@ def grade_resume(resume: ResumeInput):
     return {"grade": result["grade"], "feedback": result["feedback"]}
 
 # --- Mock Interview Endpoint ---
+
+# Updated InterviewInput to include user email and interview details
 class InterviewInput(BaseModel):
     answers: List[str]
+    user_email: str
+    interview_time: Optional[str] = None  # ISO format or readable string
 
 @router.post("/mock_interview")
 def mock_interview(interview: InterviewInput):
     from app.services.career_service import mock_interview_service
+    from app.email_utils import send_email
     result = mock_interview_service(interview.answers)
-    return {"score": result["score"], "feedback": result["feedback"]}
+    # Send interview alert email if email provided
+    if interview.user_email:
+        subject = "Your Mock Interview Details"
+        html = f"""
+        <h2>Mock Interview Scheduled</h2>
+        <p>Your mock interview is scheduled for: <b>{interview.interview_time or 'TBD'}</b></p>
+        <p>Good luck! After your interview, you'll receive feedback and a score from the AI bot.</p>
+        <p>If you score low, you'll be invited to a VR study session to help you improve!</p>
+        """
+        try:
+            send_email(interview.user_email, subject, html)
+        except Exception as e:
+            result["email_status"] = f"Failed to send email: {e}"
+        else:
+            result["email_status"] = "Interview alert email sent."
+    return result
 
 # --- Job Alignment Planning Endpoint ---
 class JobAlignmentInput(BaseModel):

@@ -54,6 +54,7 @@ import { getStressQuestions, getDestressMeasure, wellnessDisclaimer } from '../u
 import React, { useState } from 'react';
 import Toast from 'react-native-root-toast';
 import { View, Text, StyleSheet, Button, TextInput, Switch, ActivityIndicator } from 'react-native';
+import BreadLogo from '../components/BreadLogo';
 import { fetchRestaurantMenu, suggestHealthyOptions } from '../utils/restaurantHelper';
 import * as ImagePicker from 'expo-image-picker';
   // Menu image support
@@ -132,6 +133,9 @@ const HomeScreen = () => {
 
   return (
     <View style={styles.container}>
+      <View style={{ position: 'absolute', top: 12, left: 12, zIndex: 10 }}>
+        <BreadLogo size={40} />
+      </View>
       <ToastLogo width={56} height={56} />
       <Text style={styles.tagline}>A toast isn’t just a toast—unless it covers multiple needs.</Text>
       <Text style={styles.disclaimer}>

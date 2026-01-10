@@ -62,6 +62,10 @@ const VoiceMultimodalScreen = () => {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Voice & Multimodal Interaction</Text>
+      <Text style={styles.vrDisclaimer}>
+        <Text style={{fontWeight:'bold', color:'#d00'}}>IMPORTANT (VR/Voice): </Text>
+        By enabling robot device or food ordering features, you accept all risks. Users are responsible for verifying all orders before submission. Not intended for emergency, medical, or safety‑critical situations. Your choices remain private and are never shared with third parties. Performance may vary depending on device, network, and restaurant availability. The app and its creators are not liable for any damages, accidents, or misuse. Use at your own risk.
+      </Text>
       <Button title="Upload Voice Message" onPress={handleUploadVoice} disabled={loading} />
       <Button title="Fetch Voice Messages" onPress={fetchVoiceMessages} disabled={loading} />
       <FlatList
@@ -96,6 +100,7 @@ const VoiceMultimodalScreen = () => {
 const styles = StyleSheet.create({
   container: { flex: 1, padding: 24, backgroundColor: '#fff' },
   title: { fontSize: 22, fontWeight: 'bold', marginBottom: 16 },
+  vrDisclaimer: { fontSize: 14, color: '#a00', marginBottom: 18, fontStyle: 'italic', textAlign: 'center', backgroundColor: '#fff3e0', padding: 10, borderRadius: 8 },
   desc: { fontSize: 16, marginBottom: 24, textAlign: 'center' },
   sectionTitle: { fontWeight: 'bold', marginTop: 18, marginBottom: 6 },
   card: { borderWidth: 1, borderColor: '#1976d2', borderRadius: 8, padding: 12, marginBottom: 12, backgroundColor: '#e3f2fd' },
